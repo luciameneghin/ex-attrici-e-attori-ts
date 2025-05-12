@@ -45,7 +45,12 @@ function isActress(data: unknown): data is Actress {
 }
 
 function getActress(id: number): Promise<Actress | null> {
-  return fetch(`https://boolean-spec-frontend.vercel.app/freetestapi/actresses/${id}`)
+  return fetch(`http://localhost:5001/actresses/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
     .then(response => {
       if (!response.ok) {
         return null;
@@ -59,3 +64,35 @@ function getActress(id: number): Promise<Actress | null> {
       return null;
     });
 }
+
+// Milestone 4
+
+function getAllActresses(): Promise<Actress[]> {
+  return fetch('http://localhost:5001/actresses')
+    .then(response => {
+      if (!response.ok) {
+        console.error('Error fetching actresses:', response.statusText);
+        return [];
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (Array.isArray(data)) {
+        return data.filter(isActress);
+      }
+      return [];
+    })
+    .catch(error => {
+      console.error('Network or parsing error:', error);
+      return [];
+    });
+}
+
+getActress(1).then(data => {
+  console.log('Actress data:', data);
+});
+
+getAllActresses().then(actresses => {
+  console.log('All actresses:', actresses);
+});
+
