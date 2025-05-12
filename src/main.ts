@@ -96,3 +96,12 @@ getAllActresses().then(actresses => {
   console.log('All actresses:', actresses);
 });
 
+
+// Milestone 5
+function getActresses(ids: number[]): Promise<(Actress | null)[]> {
+  const promises = ids.map(id => getActress(id));
+  return Promise.all(promises);
+}
+getActresses([6, 40, 2]).then(actresses => {
+  console.log('Actresses data:', actresses);
+});
