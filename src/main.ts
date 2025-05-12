@@ -117,25 +117,6 @@ async function getAllActresses(): Promise<Actress[]> {
     return [];
   }
 }
-//   return fetch('http://localhost:5001/actresses')
-//     .then(response => {
-//       if (!response.ok) {
-//         console.error('Error fetching actresses:', response.statusText);
-//         return [];
-//       }
-//       return response.json();
-//     })
-//     .then(data => {
-//       if (Array.isArray(data)) {
-//         return data.filter(isActress);
-//       }
-//       return [];
-//     })
-//     .catch(error => {
-//       console.error('Network or parsing error:', error);
-//       return [];
-//     });
-// }
 
 getActress(1).then(data => {
   console.log('Actress data:', data);
@@ -147,10 +128,21 @@ getAllActresses().then(actresses => {
 
 
 // Milestone 5
-function getActresses(ids: number[]): Promise<(Actress | null)[]> {
-  const promises = ids.map(id => getActress(id));
-  return Promise.all(promises);
+async function getActresses(ids: number[]): Promise<(Actress | null)[]> {
+  try {
+    const promises = ids.map(id => getActress(id));
+    const actresses = await Promise.all(promises);
+    return actresses;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('Error:', error.message);
+    } else {
+      console.error('Unknown error:', error);
+    }
+    return [];
+  }
 }
+
 getActresses([6, 40, 2]).then(actresses => {
   console.log('Actresses data:', actresses);
 });
