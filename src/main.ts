@@ -9,18 +9,21 @@ type Person = {
 }
 
 // Milestone 2
+type actressNationality = 'American' | 'British' | 'Australian' | 'Israeli-American' | 'South African' | 'French' | 'Indian' | 'Israeli' | 'Spanish' | 'South Korean' | 'Chinese';
 
 type Actress = Person & {
   most_famous_movies: [string, string, string];
   awards: string;
-  nationality: 'American' | 'British' | 'Australian' | 'Israeli-American' | 'South African' | 'French' | 'Indian' | 'Israeli' | 'Spanish' | 'South Korean' | 'Chinese';
+  nationality: actressNationality
 }
 
 // Bonus 2
+type actorNationality = 'American' | 'British' | 'Australian' | 'Israeli-American' | 'South African' | 'French' | 'Indian' | 'Israeli' | 'Spanish' | 'South Korean' | 'Chinese' | 'Scottish' | 'New Zealand' | 'Hong Kong' | 'German' | 'Canadian' | 'Irish';
+
 type Actor = Person & {
   known_for: [string, string, string];
   awards: [string] | [string, string];
-  nationality: 'American' | 'British' | 'Australian' | 'Israeli-American' | 'South African' | 'French' | 'Indian' | 'Israeli' | 'Spanish' | 'South Korean' | 'Chinese' | 'Scottish' | 'New Zealand' | 'Hong Kong' | 'German' | 'Canadian' | 'Irish';
+  nationality: actorNationality;
 }
 
 
@@ -41,7 +44,9 @@ function isActress(data: unknown): data is Actress {
     'image' in data &&
     typeof data.image === 'string' &&
     'most_famous_movies' in data &&
-    typeof data.most_famous_movies === 'object' &&
+    data.most_famous_movies instanceof Array &&
+    data.most_famous_movies.length === 3 &&
+    data.most_famous_movies.every(m => typeof m === 'string') &&
     'awards' in data &&
     typeof data.awards === 'string' &&
     'nationality' in data &&
@@ -52,49 +57,85 @@ function isActress(data: unknown): data is Actress {
   return false;
 }
 
-function getActress(id: number): Promise<Actress | null> {
-  return fetch(`http://localhost:5001/actresses/${id}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
+async function getActress(id: number): Promise<Actress | null> {
+  try {
+    const response = await fetch(`http://localhost:5001/actresses/${id}`);
+    const data: unknown = await response.json();
+    if (!isActress(data)) {
+      throw new Error('Invalid actress data');
     }
-  })
-    .then(response => {
-      if (!response.ok) {
-        return null;
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (isActress(data)) {
-        return data;
-      }
-      return null;
-    });
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('Error:', error.message);
+    } else {
+      console.error('Unknown error:', error);
+    }
+    return null;
+  }
 }
+// return fetch(`http://localhost:5001/actresses/${id}`, {
+//   method: 'GET',
+//   headers: {
+//     'Content-Type': 'application/json'
+//   }
+// })
+//   .then(response => {
+//     if (!response.ok) {
+//       return null;
+//     }
+//     return response.json();
+//   })
+//   .then(data => {
+//     if (isActress(data)) {
+//       return data;
+//     }
+//     return null;
+//   });
+
 
 // Milestone 4
 
-function getAllActresses(): Promise<Actress[]> {
-  return fetch('http://localhost:5001/actresses')
-    .then(response => {
-      if (!response.ok) {
-        console.error('Error fetching actresses:', response.statusText);
-        return [];
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (Array.isArray(data)) {
-        return data.filter(isActress);
-      }
-      return [];
-    })
-    .catch(error => {
-      console.error('Network or parsing error:', error);
-      return [];
-    });
+async function getAllActresses(): Promise<Actress[]> {
+  try {
+    const response = await fetch('http://localhost:5001/actresses');
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}: ${response.statusText}`);
+    }
+    const data: unknown = await response.json();
+    if (!(data instanceof Array)) {
+      throw new Error('Invalid data format');
+    }
+    const validActresses: Actress[] = data.filter(isActress);
+    return validActresses;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('Error:', error.message);
+    } else {
+      console.error('Unknown error:', error);
+    }
+    return [];
+  }
 }
+//   return fetch('http://localhost:5001/actresses')
+//     .then(response => {
+//       if (!response.ok) {
+//         console.error('Error fetching actresses:', response.statusText);
+//         return [];
+//       }
+//       return response.json();
+//     })
+//     .then(data => {
+//       if (Array.isArray(data)) {
+//         return data.filter(isActress);
+//       }
+//       return [];
+//     })
+//     .catch(error => {
+//       console.error('Network or parsing error:', error);
+//       return [];
+//     });
+// }
 
 getActress(1).then(data => {
   console.log('Actress data:', data);
